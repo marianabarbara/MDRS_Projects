@@ -1,6 +1,6 @@
 %% Task 1 a)
 
-P = 1e5;     %stopping criteria
+P = 1e5;        % stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals
 C = 10;         % C = 10 Mbps
@@ -27,13 +27,13 @@ for i = 1:length(lambda)
     termPL = norminv(1-alfa/2) * sqrt(var(PL)/N);
     PL_values(i) = mediaPL;
     PL_term(i) = termPL;
-    fprintf('PacketLoss (%%)\t  = %.2e +- %.2e\n', mediaPL, termPL);
+    fprintf('Packet Loss (%%) = %.2e +- %.2e\n', mediaPL, termPL);
     
     mediaAPD = mean(APD);
     termAPD = norminv(1-alfa/2) * sqrt(var(APD)/N);
     APD_values(i) = mediaAPD;
     APD_term(i) = termAPD;
-    fprintf('Ag. Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD, termAPD);
+    fprintf('Average Packet Delay (ms) = %.2e +- %.2e\n', mediaAPD, termAPD);
 end
 
 fprintf('\nSimulation ended!\n');
@@ -48,7 +48,7 @@ er = errorbar(lambda, PL_values, PL_term);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 xlabel('Packet Rate (pps)');
-ylabel('PacketLoss (ms)');
+ylabel('Packet Loss (%)');
 hold off
 
 figure(2);
@@ -62,6 +62,7 @@ er.LineStyle = 'none';
 xlabel('Packet Rate (pps)');
 ylabel('Average packet delay (ms)');
 hold off
+
 
 %% Task 1b)
 P = 1e5;     %stopping criteria
