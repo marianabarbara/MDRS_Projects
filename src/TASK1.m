@@ -1,6 +1,6 @@
 %% Task 1 a)
 fprintf('TASK 1a)');
-P = 1e5;    	%stopping criteria
+P = 1e5;    	% stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals
 C = 10;         % C = 10 Mbps
@@ -64,8 +64,8 @@ ylabel('Average packet delay (ms)');
 hold off
 
 %% Task 1b)
-fprintf('TASK 1b)');
-P = 1e5;     %stopping criteria
+fprintf('TASK 1b)\n');
+P = 1e5;        % stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals
 C = 10;         % C = 10 Mbps
@@ -92,18 +92,16 @@ for i = 1:length(lambda)
     termPL = norminv(1-alfa/2) * sqrt(var(PL)/N);
     PL_values(i) = mediaPL;
     PL_term(i) = termPL;
-    fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL, termPL);
+    fprintf('Packet Loss (%%) = %.2e +- %.2e\n', mediaPL, termPL);
     
     mediaAPD = mean(APD);
     termAPD = norminv(1-alfa/2) * sqrt(var(APD)/N);
     APD_values(i) = mediaAPD;
     APD_term(i) = termAPD;
-    fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD, termAPD);
+    fprintf('Average Packet Delay (ms) = %.2e +- %.2e\n', mediaAPD, termAPD);
 end
 
 fprintf('\nSimulation ended!\n');
-
-
 
 figure(1);
 hold on;
@@ -113,7 +111,7 @@ er = errorbar(lambda, PL_values, PL_term);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 xlabel('Packet Rate (pps)');
-ylabel('Packet Loss (ms)');
+ylabel('Packet Loss (%)');
 hold off
 
 figure(2);
@@ -130,7 +128,7 @@ hold off
 
 %% TASK 1d
 fprintf('TASK 1d)');
-P = 1e5;     %stopping criteria
+P = 1e5;        % stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals
 C = 10;         % C = 10 Mbps
@@ -265,7 +263,7 @@ fprintf('Throughput (Mbps)\t = %.4f\n', TT);
 
 %% Task 1f
 fprintf('TASK 1f)');
-P = 1e5;     %stopping criteria
+P = 1e5;        % stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals
 C = 10;         % C = 10 Mbps
