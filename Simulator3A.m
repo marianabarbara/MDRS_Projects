@@ -97,22 +97,24 @@ while (TRANSPACKETSd + TRANSPACKETSv) <P                     % Stopping criteriu
             end
 
         case DEPARTURE          % If first event is a DEPARTURE
-            bits = 8 * PacketSize;
-            perr = 1 - (1-b)^bits;
-            if (PacketType == DATA)
-                TRANSBYTESd= TRANSBYTESd + PacketSize;
-                DELAYSd= DELAYSd + (Clock - ArrInstant);
-                if Clock - ArrInstant > MAXDELAYd
-                    MAXDELAYd= Clock - ArrInstant;
+            if(rand() < 1-(1-b)^(PacketSize *8))          % chegar sem erros
+                if (PacketType == DATA)
+                    TRANSBYTESd= TRANSBYTESd + PacketSize;
+                    DELAYSd= DELAYSd + (Clock - ArrInstant);
+                    LOSTPACKETSd = LOSTPACKETSd + 1;
+                    if Clock - ArrInstant > MAXDELAYd
+                        MAXDELAYd= Clock - ArrInstant;
+                    end
+                    TRANSPACKETSd= TRANSPACKETSd + 1;
+                else
+                   TRANSBYTESv= TRANSBYTESv + PacketSize;
+                   DELAYSv= DELAYSv + (Clock - ArrInstant);
+                   LOSTPACKETSv = LOSTPACKETSv + 1;
+                   if Clock - ArrInstant > MAXDELAYv
+                       MAXDELAYv= Clock - ArrInstant;
+                   end
+                   TRANSPACKETSv= TRANSPACKETSv + 1; 
                 end
-                TRANSPACKETSd= TRANSPACKETSd + 1;
-            else
-               TRANSBYTESv= TRANSBYTESv + PacketSize;
-               DELAYSv= DELAYSv + (Clock - ArrInstant);
-               if Clock - ArrInstant > MAXDELAYv
-                   MAXDELAYv= Clock - ArrInstant;
-               end
-               TRANSPACKETSv= TRANSPACKETSv + 1; 
             end
             if QUEUEOCCUPATION > 0
                 QSize= QUEUE(1,1);

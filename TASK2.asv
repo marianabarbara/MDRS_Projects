@@ -1,0 +1,51 @@
+%% Task 2a
+
+P = 10000;
+N = 100;
+lambda = 1800;
+C = 10;
+f = 1000000;
+n = 20;
+
+PLd = zeros(1,N);
+APDd = zeros(1,N);
+MPDd = zeros(1,N);
+
+PLv = zeros(1,N);
+APDv = zeros(1,N);
+MPDv = zeros(1,N);
+TT = zeros(1,N);
+
+for it = 1:N
+    [PLd(it), APDd(it), MPDd(it), PLv(it), APDv(it), MPDv(it), TT(it)] = Simulator3(lambda,C,f,P, n);
+end
+
+alfa = 0.1;
+
+mediaPLd = mean(PLd);
+termPLd = norminv(1-alfa/2) * sqrt(var(PLd)/N);
+fprintf('PacketLoss of data(%%)\t  = %.2e +- %.2e\n', mediaPLd, termPLd);
+
+mediaPLv = mean(PLv);
+termPLv = norminv(1-alfa/2) * sqrt(var(PLv)/N);
+fprintf('PacketLoss of VoIP (%%)\t  = %.2e +- %.2e\n', mediaPLv, termPLv);
+
+mediaAPDd = mean(APDd);
+termAPDd = norminv(1-alfa/2) * sqrt(var(APDd)/N);
+fprintf('Ag. Packet Delay of data (ms)\t = %.2e +- %.2e\n', mediaAPDd, termAPDd);
+
+mediaAPDv = mean(APDv);
+termAPDv = norminv(1-alfa/2) * sqrt(var(APDv)/N);
+fprintf('Ag. Packet Delay of VoIP (ms)\t = %.2e +- %.2e\n', mediaAPDv, termAPDv);
+
+mediaMPDd = mean(MPDd);
+termMPDd = norminv(1-alfa/2) * sqrt(var(MPDd)/N);
+fprintf('Max. Packet Delay of data (ms)\t = %.2e +- %.2e\n', mediaMPDd, termMPDd);
+
+mediaMPDv = mean(MPDv);
+termMPDv = norminv(1-alfa/2) * sqrt(var(MPDv)/N);
+fprintf('Max. Packet Delay of VoIP (ms)\t = %.2e +- %.2e\n', mediaMPDv, termMPDv);
+
+mediaTT = mean(TT);
+termTT = norminv(1-alfa/2) * sqrt(var(TT)/N);
+fprintf('Througtput (Mbps)\t = %.2e +- %.2e\n', mediaTT, termTT);

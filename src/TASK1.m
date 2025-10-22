@@ -158,6 +158,7 @@ mediaAPD = mean(APD);
 termAPD = norminv(1-alfa/2) * sqrt(var(APD)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD, termAPD);
 
+fprintf('Packet Size = 64 bytes\n');
 mediaPL_64 = mean(PL_64);
 termPL_64 = norminv(1-alfa/2) * sqrt(var(PL_64)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_64, termPL_64);
@@ -166,6 +167,7 @@ mediaAPD_64 = mean(APD_64);
 termAPD_64 = norminv(1-alfa/2) * sqrt(var(APD_64)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD_64, termAPD_64);
 
+fprintf('Packet Size = 110 bytes\n');
 mediaPL_110 = mean(PL_110);
 termPL_110 = norminv(1-alfa/2) * sqrt(var(PL_110)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_110, termPL_110);
@@ -174,6 +176,7 @@ mediaAPD_110 = mean(APD_110);
 termAPD_110 = norminv(1-alfa/2) * sqrt(var(APD_110)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD_110, termAPD_110);
 
+fprintf('Packet Size = 1518 bytes\n');
 mediaPL_1518 = mean(PL_1518);
 termPL_1518 = norminv(1-alfa/2) * sqrt(var(PL_1518)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_1518, termPL_1518);
@@ -262,7 +265,7 @@ fprintf('Throughput (Mbps)\t = %.4f\n', TT);
 
 
 %% Task 1f
-fprintf('TASK 1f)');
+fprintf('TASK 1f)\n');
 P = 1e5;        % stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals
@@ -285,6 +288,7 @@ for it = 1:N
     [PL(it) , PL_64(it), PL_110(it), PL_1518(it), APD(it) , APD_64(it), APD_110(it), APD_1518(it), MPD(it) , TT(it)] = Simulator1A(lambda,C,f,P);
 end
 
+
 mediaPL = mean(PL);
 termPL = norminv(1-alfa/2) * sqrt(var(PL)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL, termPL);
@@ -293,6 +297,7 @@ mediaAPD = mean(APD);
 termAPD = norminv(1-alfa/2) * sqrt(var(APD)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD, termAPD);
 
+fprintf('Packet Size = 64 bytes\n');
 mediaPL_64 = mean(PL_64);
 termPL_64 = norminv(1-alfa/2) * sqrt(var(PL_64)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_64, termPL_64);
@@ -301,6 +306,7 @@ mediaAPD_64 = mean(APD_64);
 termAPD_64 = norminv(1-alfa/2) * sqrt(var(APD_64)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD_64, termAPD_64);
 
+fprintf('Packet Size = 110 bytes\n');
 mediaPL_110 = mean(PL_110);
 termPL_110 = norminv(1-alfa/2) * sqrt(var(PL_110)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_110, termPL_110);
@@ -309,6 +315,7 @@ mediaAPD_110 = mean(APD_110);
 termAPD_110 = norminv(1-alfa/2) * sqrt(var(APD_110)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD_110, termAPD_110);
 
+fprintf('Packet Size = 1518 bytes\n');
 mediaPL_1518 = mean(PL_1518);
 termPL_1518 = norminv(1-alfa/2) * sqrt(var(PL_1518)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_1518, termPL_1518);
@@ -381,6 +388,7 @@ mediaAPD = mean(APD);
 termAPD = norminv(1-alfa/2) * sqrt(var(APD)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD, termAPD);
 
+fprintf('Packet Size = 64 bytes\n');
 mediaPL_64 = mean(PL_64);
 termPL_64 = norminv(1-alfa/2) * sqrt(var(PL_64)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_64, termPL_64);
@@ -389,6 +397,7 @@ mediaAPD_64 = mean(APD_64);
 termAPD_64 = norminv(1-alfa/2) * sqrt(var(APD_64)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD_64, termAPD_64);
 
+fprintf('Packet Size = 110 bytes\n');
 mediaPL_110 = mean(PL_110);
 termPL_110 = norminv(1-alfa/2) * sqrt(var(PL_110)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_110, termPL_110);
@@ -397,6 +406,7 @@ mediaAPD_110 = mean(APD_110);
 termAPD_110 = norminv(1-alfa/2) * sqrt(var(APD_110)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD_110, termAPD_110);
 
+fprintf('Packet Size = 1518 bytes\n');
 mediaPL_1518 = mean(PL_1518);
 termPL_1518 = norminv(1-alfa/2) * sqrt(var(PL_1518)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_1518, termPL_1518);
@@ -464,6 +474,7 @@ mediaAPD = mean(APD);
 termAPD = norminv(1-alfa/2) * sqrt(var(APD)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD, termAPD);
 
+fprintf('Packet Size = 64 bytes\n');
 mediaPL_64 = mean(PL_64);
 termPL_64 = norminv(1-alfa/2) * sqrt(var(PL_64)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_64, termPL_64);
@@ -472,6 +483,7 @@ mediaAPD_64 = mean(APD_64);
 termAPD_64 = norminv(1-alfa/2) * sqrt(var(APD_64)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD_64, termAPD_64);
 
+fprintf('Packet Size = 110 bytes\n');
 mediaPL_110 = mean(PL_110);
 termPL_110 = norminv(1-alfa/2) * sqrt(var(PL_110)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_110, termPL_110);
@@ -480,6 +492,7 @@ mediaAPD_110 = mean(APD_110);
 termAPD_110 = norminv(1-alfa/2) * sqrt(var(APD_110)/N);
 fprintf('Average Packet Delay (ms)\t = %.2e +- %.2e\n', mediaAPD_110, termAPD_110);
 
+fprintf('Packet Size = 1518 bytes\n');
 mediaPL_1518 = mean(PL_1518);
 termPL_1518 = norminv(1-alfa/2) * sqrt(var(PL_1518)/N);
 fprintf('Packet Loss (%%)\t  = %.2e +- %.2e\n', mediaPL_1518, termPL_1518);
