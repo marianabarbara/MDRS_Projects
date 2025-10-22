@@ -127,7 +127,7 @@ ylabel('Average packet delay (ms)');
 hold off
 
 %% TASK 1d
-fprintf('TASK 1d)');
+fprintf('TASK 1d)\n');
 P = 1e5;        % stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals
@@ -357,7 +357,7 @@ hold off;
 
 
 %% Task 1h
-fprintf('TASK 1h)');
+fprintf('TASK 1h)\n');
 P = 1e5;     %stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals

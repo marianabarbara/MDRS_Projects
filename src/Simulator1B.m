@@ -118,25 +118,26 @@ while TRANSPACKETS<P                     % Stopping criterium
                 DELAYS_1518 = DELAYS_1518 + (Clock - ArrInstant);
             end
             
-            if ~isempty(QUEUE1)
-                QSize = QUEUE1(1,1);
-                QInstant = QUEUE1(1,2);
-                QUEUE1(1, :) = [];
-            elseif ~isempty(QUEUE2)
-                QSize = QUEUE2(1,1);
-                QInstant = QUEUE2(1,2);
-                QUEUE2(1, :) = [];
-            elseif ~isempty(QUEUE3)
-                QSize = QUEUE3(1,1);
-                QInstant = QUEUE3(1,2);
-                QUEUE3(1, :) = [];
-
+            if QUEUEOCCUPATION > 0
+                if ~isempty(QUEUE1)
+                    QSize = QUEUE1(1,1);
+                    QInstant = QUEUE1(1,2);
+                    QUEUE1(1, :) = [];
+                elseif ~isempty(QUEUE2)
+                    QSize = QUEUE2(1,1);
+                    QInstant = QUEUE2(1,2);
+                    QUEUE2(1, :) = [];
+                elseif ~isempty(QUEUE3)
+                    QSize = QUEUE3(1,1);
+                    QInstant = QUEUE3(1,2);
+                    QUEUE3(1, :) = [];
+                end
+                QUEUEOCCUPATION= QUEUEOCCUPATION - QSize;
+                Event_List = [Event_List; DEPARTURE, Clock + 8*QSize/(C*1e6), QSize, QInstant];
             else
                 STATE= 0;
                 continue;
             end
-            QUEUEOCCUPATION= QUEUEOCCUPATION - QSize;
-            Event_List = [Event_List; DEPARTURE, Clock + 8*QSize/(C*1e6), QSize, QInstant];
     end
 end
 
@@ -173,11 +174,11 @@ function out= GenerateDataPacketSize()
 end
 
 function priority = priorityOf(size)
-    if size >= 1501 && size <= 1518
+    if size >= 1501
         priority = 1;
-    elseif size >= 1001 && size <= 1500
+    elseif size <= 1500
         priority = 2;
-    elseif size >= 1 && size <= 1000
+    else
         priority = 3;
     end
 end
