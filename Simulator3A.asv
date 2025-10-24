@@ -97,10 +97,11 @@ while (TRANSPACKETSd + TRANSPACKETSv) <P                     % Stopping criteriu
             end
 
         case DEPARTURE          % If first event is a DEPARTURE
-            if(rand() < (1-b)^(PacketSize *8))          % chegar sem erros
+            if(rand() < (1- (1-b)^(PacketSize *8)))          % chegar sem erros
                 if (PacketType == DATA)
                     TRANSBYTESd= TRANSBYTESd + PacketSize;
                     DELAYSd= DELAYSd + (Clock - ArrInstant);
+                    LOSTPACKETSd = LOSTPACKETSd + 1;
                     if Clock - ArrInstant > MAXDELAYd
                         MAXDELAYd= Clock - ArrInstant;
                     end
@@ -108,19 +109,13 @@ while (TRANSPACKETSd + TRANSPACKETSv) <P                     % Stopping criteriu
                 else
                    TRANSBYTESv= TRANSBYTESv + PacketSize;
                    DELAYSv= DELAYSv + (Clock - ArrInstant);
+                   LOSTPACKETSv = LOSTPACKETSv + 1;
                    if Clock - ArrInstant > MAXDELAYv
                        MAXDELAYv= Clock - ArrInstant;
                    end
                    TRANSPACKETSv= TRANSPACKETSv + 1; 
                 end
-            else                                    % chegar com erros
-                if (PacketType == DATA)
-                    LOSTPACKETSd = LOSTPACKETSd + 1;
-                else
-                    LOSTPACKETSv = LOSTPACKETSv + 1;
-                end
             end
-
             if QUEUEOCCUPATION > 0
                 QSize= QUEUE(1,1);
                 QInstant= QUEUE(1,2);
@@ -143,7 +138,7 @@ PLv= 100*LOSTPACKETSv/TOTALPACKETSv;  % in percentage
 APDv= 1000*DELAYSv/TRANSPACKETSv;     % in milliseconds
 MPDv= 1000*MAXDELAYv;                % in milliseconds
 
-TT= 1e-6*(TRANSBYTESd + TRANSBYTESv)*8/Clock;       % in Mbps
+TT= 1e-6*(TRANSBYTESd + TRANSPACKETSv)*8/Clock;       % in Mbps
 
 end
 
