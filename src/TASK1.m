@@ -48,7 +48,9 @@ er = errorbar(lambda, PL_values, PL_term);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 xlabel('Packet Rate (pps)');
-ylabel('Packet Loss (ms)');
+xticks(lambda);
+ylabel('Packet Loss (%)');
+title ('Task 1(a) - Packet Loss vs Packet Rate');
 hold off
 
 figure(2);
@@ -60,7 +62,9 @@ er = errorbar(lambda, APD_values, APD_term);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 xlabel('Packet Rate (pps)');
+xticks(lambda);
 ylabel('Average packet delay (ms)');
+title('Task 1(a) - Average Packet Delay vs. Packet Rate');
 hold off
 
 %% Task 1b)
@@ -111,7 +115,9 @@ er = errorbar(lambda, PL_values, PL_term);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 xlabel('Packet Rate (pps)');
+xticks(lambda);
 ylabel('Packet Loss (%)');
+title ('Task 1(b) - Packet Loss vs Packet Rate');
 hold off
 
 figure(2);
@@ -123,7 +129,9 @@ er = errorbar(lambda, APD_values, APD_term);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';  
 xlabel('Packet Rate (pps)');
+xticks(lambda);
 ylabel('Average packet delay (ms)');
+title('Task 1(b) - Average Packet Delay vs. Packet Rate');
 hold off
 
 %% TASK 1d
@@ -194,18 +202,19 @@ PL_terms  = [termPL,   termPL_64,   termPL_110,   termPL_1518];
 APD_means = [mediaAPD, mediaAPD_64, mediaAPD_110, mediaAPD_1518];
 APD_terms = [termAPD,  termAPD_64,  termAPD_110,  termAPD_1518];
 
-lambda = 1900;
-
-
 figure(1); 
 hold on; 
 grid on;
 bar(PL_means);
-% center positions of the bars are 1:4 for a single-series bar chart
 er = errorbar(1:4, PL_means, PL_terms);
 er.Color = [0 0 0];
 er.LineStyle = 'none';
+xticks([1 2 3 4])
+xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'})
+xlabel('Packet Size')
 ylabel('Packet loss (%)');
+title('Task 1(d) – Packet Loss per Packet Size')
+
 hold off;
 
 figure(2);
@@ -217,6 +226,10 @@ er = errorbar(1:4, APD_means, APD_terms);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none'; 
 ylabel('Average packet delay (ms)');
+xticks([1 2 3 4])
+xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'})
+xlabel('Packet Size')
+title('Task 1(d) – Average Packet Delay per Packet Size');
 hold off;
 
 %% Task 1e - Teórica - não sei como fazer ainda, mas deve ser adaptar este código!
@@ -234,34 +247,48 @@ avg_packet_size = 0.19*64 + 0.23*110 + 0.17*1518 + sum(65:109)* prob_elements + 
 avg_time = (avg_packet_size * 8) / (C * 10^6);
 
 S = x .*8 / (C * 10^6);
-S2 = x .*8 / (C * 10^6);
+S2 = S.^2;
 
 for i = 1:length(x)
     if i == 1
-        S(i) = S(i) * 0.19;
-        S2(i) = S2(i) ^ 2 * 0.19;
+       p = 0.19;
     elseif i == 110-64+1
-        S(i) = S(i) * 0.23;
-        S2(i) = S2(i) ^ 2 * 0.23;
+       p = 0.23;
     elseif i == 1518-64+1
-        S(i) = S(i) * 0.17;
-        S2(i) = S2(i)^2 * 0.17;
+        p = 0.17;
     else
-        S(i) = S(i) * prob_elements;
-        S2(i) = S2(i)^2 * prob_elements;
+       p = prob_elements;
     end
+    S(i) = S(i) * p;
+    S2(i) = S2(i) * p;
 end
 
 ES = sum(S);
 ES2 = sum(S2);
-w = (lambda * ES2) / (2*(1 - lambda*ES)) + ES;
+
+W = (lambda * ES2) / (2*(1 - lambda*ES)) + ES;
+Wq = (lambda * ES2) / (2*(1 - lambda*ES));
+
+S64 = (64 * 8) / (C * 1e6);
+S110 = (110 * 8) / (C * 1e6);
+S1518 = (1518 * 8) / (C * 1e6);
+
+W64 = Wq + S64;
+W110 = Wq + S110;
+W1518 = Wq + S1518;
 
 TT = lambda * avg_packet_size * 8 / 10^6;
 
 % Lista de espera infinita - não tem packet loss.
-fprintf('Packet Loss (%%)\t = 0.0000\n');
-fprintf('Avg.Packet Delay (ms)\t = %.4f\n', w*1000);
-fprintf('Throughput (Mbps)\t = %.4f\n', TT);
+fprintf('PL_all (%%)      = 0.0000\n');
+fprintf('PL_64B (%%)      = 0.0000\n');
+fprintf('PL_110B (%%)     = 0.0000\n');
+fprintf('PL_1518B (%%)    = 0.0000\n');
+fprintf('Delay all (ms)   = %.4f\n', W*1000);
+fprintf('Delay 64B (ms)   = %.4f\n', W64*1000);
+fprintf('Delay 110B (ms)  = %.4f\n', W110*1000);
+fprintf('Delay 1518B (ms) = %.4f\n', W1518*1000);
+fprintf('Throughput (Mb/s)= %.4f\n', TT);
 
 
 %% Task 1f
@@ -343,6 +370,10 @@ er = errorbar(1:4, PL_means, PL_terms);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';
 ylabel('Packet loss (%)');
+xticks([1 2 3 4])
+xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'})
+xlabel('Packet Size')
+title('Task 1(f) – Packet Loss per Packet Size');
 hold off;
 
 figure(2);
@@ -353,6 +384,10 @@ er = errorbar(1:4, APD_means, APD_terms);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';
 ylabel('Average packet delay (ms)');
+xticks([1 2 3 4])
+xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'})
+xlabel('Packet Size')
+title('Task 1(f) – Average Packet Delay per Packet Size');
 hold off;
 
 
@@ -424,12 +459,18 @@ PL_terms  = [termPL,   termPL_64,   termPL_110,   termPL_1518];
 APD_means = [mediaAPD, mediaAPD_64, mediaAPD_110, mediaAPD_1518];
 APD_terms = [termAPD,  termAPD_64,  termAPD_110,  termAPD_1518];
 
-figure(1); clf; hold on; grid on;
+figure(1);
+hold on
+grid on;
 bar(PL_means);
 er = errorbar(1:4, PL_means, PL_terms);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';
 ylabel('Packet loss (%)');
+title('Task 1(h) – Packet Loss per Packet Size (Priority Queuing)')
+xlabel('Packet Size');
+xticks(1:4);
+xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'});
 hold off;
 
 figure(2); 
@@ -440,6 +481,10 @@ er = errorbar(1:4, APD_means, APD_terms);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';
 ylabel('Average packet delay (ms)');
+title('Task 1(h) – Average Packet Delay per Packet Size (Priority Queuing)')
+xlabel('Packet Size');
+xticks(1:4);
+xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'});
 hold off;
 
 %% Task 1i
@@ -519,6 +564,10 @@ er = errorbar(1:4, PL_means, PL_terms);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';
 ylabel('Packet loss (%)');
+title('Task 1(i) – Packet Loss per Packet Size (Priority Queuing)')
+xlabel('Packet Size');
+xticks(1:4);
+xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'});
 hold off;
 
 figure(2); 
@@ -529,4 +578,8 @@ er = errorbar(1:4, APD_means, APD_terms);
 er.Color = [0 0 0];                            
 er.LineStyle = 'none';
 ylabel('Average packet delay (ms)');
+title('Task 1(i) – Average Packet Delay per Packet Size (Priority Queuing)')
+xlabel('Packet Size');
+xticks(1:4);
+xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'});
 hold off;
