@@ -488,7 +488,7 @@ xticklabels({'All','64 Bytes','110 Bytes','1518 Bytes'});
 hold off;
 
 %% Task 1i
-fprintf('TASK 1i)');
+fprintf('TASK 1i)\n');
 P = 1e5;     %stopping criteria
 N = 50;         % number of runs
 alfa = 0.1;     % 90% confidence intervals
