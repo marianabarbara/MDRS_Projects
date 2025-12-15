@@ -1,5 +1,5 @@
 %% =========================================================
-% Task 2.a – Energy Minimization with Constraints
+% Task 2.a – Algorithm Development
 % =========================================================
 
 clear; clc;
@@ -14,29 +14,37 @@ L(L==0) = inf;
 nNodes = size(L,1);
 nFlows = size(Tu,1);
 
-fprintf('\n========== Task 2.a: Multi Start Hill Climbing ==========\n');
-fprintf('Algorithm Development:\n');
-fprintf('  - k-shortest path algorithm (k = %d)\n', k);
-fprintf('  - Greedy randomized initial solutions\n');
-fprintf('  - Energy minimization objective\n');
-fprintf('  - Link load constraint: <= 100%%\n\n');
+fprintf('\n========== Task 2.a: Algorithm Development ==========\n');
 
-% ---------------- Step 1: k-shortest paths ----------------
-fprintf('Step 1: Determining candidate routing paths for each unicast flow:\n');
+% ---------------- Step 1: Determine candidate routing paths ----------------
+fprintf('Determining candidate routing paths for each unicast flow:\n');
 paths = cell(nFlows,1);
-nSP   = zeros(nFlows,1);
 
 for f = 1:nFlows
     s = Tu(f,1);
     d = Tu(f,2);
     [p, ~] = kShortestPath(L, s, d, k);
     paths{f} = p;
-    nSP(f) = length(p);
     fprintf('  Flow %2d (%2d -> %2d): %d candidate paths\n', f, s, d, length(p));
 end
 
-% ---------------- Step 2: Run Multi Start Hill Climbing ----------------
-fprintf('\nStep 2: Running Multi Start Hill Climbing for %d seconds...\n\n', timeLimit);
+% ---------------- Step 2: Develop Multi Start Hill Climbing ----------------
+fprintf('\nStep 2: Multi Start Hill Climbing algorithm developed with:\n');
+fprintf('  - Greedy randomized initial solutions\n');
+fprintf('  - Hill climbing optimization\n');
+fprintf('  - Energy minimization objective\n');
+fprintf('  - Constraint: link load <= 100%%\n');
+fprintf('  - Output: best solution time tracked\n');
+
+
+%% =========================================================
+% Task 2.b – Run Algorithm and Report Results
+% =========================================================
+
+fprintf('\n========== Task 2.b: Running Algorithm ==========\n');
+
+timeLimit = 30;
+fprintf('Running for %d seconds with k = %d...\n\n', timeLimit, k);
 
 bestEnergy = inf;
 bestSol = [];
@@ -67,8 +75,8 @@ worstLinkLoad = max(linkLoads(:)) / linkCapacity;
 
 [totalEnergy, sleepingLinks] = computeNetworkEnergy(linkLoads, L);
 
-% ---------------- Task 2.a Results ----------------
-fprintf('========== Task 2.a Results ==========\n');
+% ---------------- Task 2.b Results ----------------
+fprintf('========== Task 2.b Results ==========\n');
 fprintf('Worst link load      : %.4f (%.2f%%)\n', worstLinkLoad, worstLinkLoad*100);
 fprintf('Network energy (W)   : %.2f\n', totalEnergy);
 fprintf('Sleeping links       : %d\n', size(sleepingLinks,1));
@@ -82,18 +90,16 @@ if ~isempty(sleepingLinks)
     end
 end
 
-% Store Task 2.a results for comparison (2.a = 2.b since same parameters)
-task2ab_worstLoad = worstLinkLoad;
-task2ab_energy = totalEnergy;
-task2ab_sleepingLinks = size(sleepingLinks,1);
-task2ab_bestTime = bestTime;
+% Store results for comparison (2.a and 2.b share same results)
+task2a_worstLoad = worstLinkLoad;
+task2a_energy = totalEnergy;
+task2a_sleepingLinks = size(sleepingLinks,1);
+task2a_bestTime = bestTime;
 
-
-%% =========================================================
-% Task 2.b – Run Algorithm and Report Results
-% =========================================================
-% Note: Task 2.b has same requirements as 2.a (k=6, 30 seconds)
-% Results are already shown above in Task 2.a output
+task2b_worstLoad = worstLinkLoad;
+task2b_energy = totalEnergy;
+task2b_sleepingLinks = size(sleepingLinks,1);
+task2b_bestTime = bestTime;
 
 
 %% =========================================================
@@ -197,3 +203,23 @@ if ~isempty(sleepingLinks)
         fprintf('  Link %2d - %2d\n', sleepingLinks(i,1), sleepingLinks(i,2));
     end
 end
+
+% Store Task 2.c results
+task2c_worstLoad = worstLinkLoad;
+task2c_energy = totalEnergy;
+task2c_sleepingLinks = size(sleepingLinks,1);
+task2c_bestTime = bestTime;
+
+% ---------------- Comparison ----------------
+fprintf('\n========== Comparison: 2.a vs 2.b vs 2.c ==========\n');
+fprintf('%-25s | %-15s | %-15s | %-15s\n', 'Metric', 'Task 2.a', 'Task 2.b', 'Task 2.c');
+fprintf('%s\n', repmat('-', 1, 75));
+fprintf('%-25s | %10.4f (%4.1f%%) | %10.4f (%4.1f%%) | %10.4f (%4.1f%%)\n', ...
+    'Worst Link Load', task2a_worstLoad, task2a_worstLoad*100, ...
+    task2b_worstLoad, task2b_worstLoad*100, task2c_worstLoad, task2c_worstLoad*100);
+fprintf('%-25s | %14.2f | %14.2f | %14.2f\n', ...
+    'Network Energy (W)', task2a_energy, task2b_energy, task2c_energy);
+fprintf('%-25s | %14d | %14d | %14d\n', ...
+    'Sleeping Links', task2a_sleepingLinks, task2b_sleepingLinks, task2c_sleepingLinks);
+fprintf('%-25s | %14.2f | %14.2f | %14.2f\n', ...
+    'Best Solution Time (s)', task2a_bestTime, task2b_bestTime, task2c_bestTime);
