@@ -23,7 +23,7 @@ Adj(1:nNodes+1:end) = 0;
 
 G = graph(Adj);
 
-%% Initialize link load matrix (Gbps)
+% Initialize link load matrix (Gbps)
 linkLoad = zeros(nNodes);
 
 % -------------------------------
@@ -264,3 +264,75 @@ fprintf('Worst link load: %.2f Gbps\n', bestGlobalCost);
 fprintf('Best solution found at %.2f seconds\n', bestTime);
 
 
+
+%% =========================
+% Task 1.d – Multi Start HC
+% =========================
+
+clear; clc;
+load('InputDataProject2.mat');
+
+nNodes = size(L,1);
+nFlows = size(Tu,1);
+linkCapacity = 50; % Gbps
+k = 6;
+timeLimit = 30; % seconds
+
+% -------------------------
+% Build graph from L
+% -------------------------
+G = graph(L, 'upper');
+
+% -------------------------
+% Compute k-shortest paths
+% -------------------------
+paths = cell(nFlows,1);
+
+for f = 1:nFlows
+    s = Tu(f,1);
+    d = Tu(f,2);
+    paths{f} = kShortestPath(L, s, d, k);
+end
+
+% -------------------------
+% Multi Start Hill Climbing
+% -------------------------
+bestGlobalCost = inf;
+bestGlobalSol = [];
+bestTime = 0;
+
+tStart = tic;
+
+while toc(tStart) < timeLimit
+
+    % --- Greedy randomized initial solution
+    sol0 = greedyRandomInitialSolution(paths);
+
+    % --- Hill climbing improvement
+    [sol, cost] = hillClimbing(sol0, paths, Tu, L, nNodes);
+
+    % --- Check if global best
+    if cost < bestGlobalCost
+        bestGlobalCost = cost;
+        bestGlobalSol = sol;
+        bestTime = toc(tStart);
+    end
+end
+
+% -------------------------
+% Evaluate final solution
+% -------------------------
+[linkLoads] = computeLinkLoads(bestGlobalSol, paths, Tu, nNodes);
+
+worstLinkLoad = max(linkLoads(:)) / linkCapacity;
+
+[energy, sleepingLinks] = computeNetworkEnergy(linkLoads, L, linkCapacity);
+
+% -------------------------
+% Display results
+% -------------------------
+fprintf('\n===== Task 1.d Results =====\n');
+fprintf('Worst link load        : %.4f\n', worstLinkLoad);
+fprintf('Network energy (W)     : %.2f\n', energy);
+fprintf('Number of sleeping links: %d\n', size(sleepingLinks,1));
+fprintf('Best solution found at : %.2f seconds\n', bestTime);
