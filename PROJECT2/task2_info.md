@@ -11,6 +11,10 @@
 
 ## Task 2.a - Algorithm Development
 
+### Purpose
+
+Develop the optimization algorithm and determine candidate routing paths. This section **describes** the algorithm components without executing a full optimization run.
+
 ### Approach
 
 **Step 1: Candidate Path Generation**
@@ -18,22 +22,41 @@
 - Uses k-shortest path algorithm (Yen's algorithm)
 - k = 6 candidate paths per unicast flow
 - Paths sorted by length (shortest first)
+- All 19 unicast flows have 6 candidate paths determined
 
-**Step 2: Multi Start Hill Climbing**
+**Step 2: Multi Start Hill Climbing Algorithm Design**
 
-- **Initialization**: Greedy randomized solution (random path selection)
-- **Optimization**: Hill climbing to minimize energy
+The algorithm consists of:
+
+- **Initialization**: Greedy randomized solution (random path selection from k=6 candidates)
+- **Optimization**: Hill climbing local search to minimize energy
+- **Neighborhood**: Swap one flow's path at a time
 - **Constraint handling**: Reject solutions with link load > 100%
-- **Time limit**: 30 seconds
-- **Output**: Best solution and time when found
+- **Objective**: Minimize total network energy (routers + links)
+- **Time tracking**: Record when best solution is found
 
-### Energy Minimization Details
+### Energy Minimization Strategy
 
 - **Objective function**: Total network energy (routers + links)
 - **Strategy**: Concentrate traffic on fewer links to maximize sleeping links
-- **Feasibility check**: All link loads ≤ 50 Gbps
+- **Feasibility check**: All link loads ≤ 50 Gbps (100% of capacity)
 
-### Typical Results (k=6)
+---
+
+## Task 2.b - Algorithm Execution (k=6, 30 seconds)
+
+### Purpose
+
+Execute the algorithm developed in Task 2.a for 30 seconds with k=6 candidate paths per flow.
+
+### Requirements
+
+- Run Multi Start Hill Climbing for 30 seconds
+- Use k=6 candidate paths (as determined in 2.a)
+- Register worst link load, network energy, and sleeping links
+- Record time when best solution was found
+
+### Typical Results
 
 | Metric             | Value                          |
 | ------------------ | ------------------------------ |
@@ -42,21 +65,7 @@
 | Sleeping links     | 9 links                        |
 | Best solution time | 15-20 seconds                  |
 
----
-
-## Task 2.b - Standard Run (k=6, 30 seconds)
-
-### Requirements
-
-- Run algorithm for 30 seconds with k=6
-- Register worst link load, network energy, and sleeping links
-- Record time when best solution was found
-
-### Results
-
-Same as Task 2.a since parameters are identical (k=6, 30 seconds).
-
-**Note**: Task 2.b validates the algorithm developed in 2.a with the specified parameters.
+**Note**: Task 2.a develops the algorithm, Task 2.b executes it. Both reference the same results since 2.b implements what 2.a designed.
 
 ---
 
@@ -85,16 +94,18 @@ Same as Task 2.a since parameters are identical (k=6, 30 seconds).
 
 ---
 
-## Comparison: Task 1.d vs Task 2.a/2.b vs Task 2.c
+## Comparison: Task 1.d vs Task 2.b vs Task 2.c
 
 ### Results Summary Table
 
-| Metric             | Task 1.d  | Task 2.a/2.b (k=6) | Task 2.c (all paths) |
-| ------------------ | --------- | ------------------ | -------------------- |
-| Worst Link Load    | 0.88-0.92 | 0.96-0.99          | 0.88-0.96            |
-| Network Energy (W) | 800-900   | 580-620            | 620-660              |
-| Sleeping Links     | 3-5       | 9                  | 8                    |
-| Objective          | Min load  | Min energy         | Min energy           |
+| Metric             | Task 1.d  | Task 2.b (k=6) | Task 2.c (all paths) |
+| ------------------ | --------- | -------------- | -------------------- |
+| Worst Link Load    | 0.88-0.92 | 0.96-0.99      | 0.88-0.96            |
+| Network Energy (W) | 800-900   | 580-620        | 620-660              |
+| Sleeping Links     | 3-5       | 9              | 8                    |
+| Objective          | Min load  | Min energy     | Min energy           |
+
+**Note**: Task 2.a develops the algorithm (no execution), so comparison uses Task 2.b results which executes the developed algorithm.
 
 ---
 
@@ -109,7 +120,7 @@ Same as Task 2.a since parameters are identical (k=6, 30 seconds).
 - More links active → higher energy consumption
 - Better capacity headroom
 
-**Task 2.a/2.b/2.c (Energy Minimization)**
+**Task 2.b (Energy Minimization with k=6)**
 
 - Concentrates traffic on fewer links
 - Some links heavily loaded (near 100%)
@@ -122,7 +133,7 @@ Same as Task 2.a since parameters are identical (k=6, 30 seconds).
 
 ### 2. Search Space Impact: k=6 vs All Paths
 
-**Task 2.a/2.b (k=6 paths)**
+**Task 2.b (k=6 paths)**
 
 - **Search space**: Limited but focused (6 shortest paths per flow)
 - **Performance**: 580-620 W energy
@@ -149,7 +160,7 @@ Same as Task 2.a since parameters are identical (k=6, 30 seconds).
 
 **Iterations per 30 seconds:**
 
-- Task 2.a/2.b (k=6): Not tracked, but very fast
+- Task 2.b (k=6): Not explicitly tracked, but very fast iterations
 - Task 2.c (all paths): ~750-850 iterations, only ~200 feasible (25%)
 
 **Hill climbing neighborhood size:**
@@ -183,7 +194,7 @@ Same as Task 2.a since parameters are identical (k=6, 30 seconds).
 - Suitable for high-availability requirements
 
 **For Green Networking:**
-✅ **Use Task 2.a/2.b** - Best energy efficiency:
+✅ **Use Task 2.b approach** - Best energy efficiency:
 
 - 30-35% energy savings vs Task 1.d
 - Acceptable link utilization (within 100% constraint)

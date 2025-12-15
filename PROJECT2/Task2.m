@@ -101,6 +101,12 @@ task2b_energy = totalEnergy;
 task2b_sleepingLinks = size(sleepingLinks,1);
 task2b_bestTime = bestTime;
 
+% Store in struct format for Task 3 comparison
+task2b.worstLoad = worstLinkLoad;
+task2b.energy = totalEnergy;
+task2b.sleepingLinks = size(sleepingLinks,1);
+task2b.bestTime = bestTime;
+
 
 %% =========================================================
 % Task 2.c – Run with All Possible Paths
@@ -209,6 +215,12 @@ task2c_worstLoad = worstLinkLoad;
 task2c_energy = totalEnergy;
 task2c_sleepingLinks = size(sleepingLinks,1);
 task2c_bestTime = bestTime;
+
+% Store in struct format for Task 3 comparison
+task2c.worstLoad = worstLinkLoad;
+task2c.energy = totalEnergy;
+task2c.sleepingLinks = size(sleepingLinks,1);
+task2c.bestTime = bestTime;
 
 % ---------------- Comparison ----------------
 fprintf('\n========== Comparison: 2.a vs 2.b vs 2.c ==========\n');
