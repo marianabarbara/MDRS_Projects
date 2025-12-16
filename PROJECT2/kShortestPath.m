@@ -1,19 +1,19 @@
 function [shortestPaths, totalCosts] = kShortestPath(netCostMatrix, source, destination, k_paths)
-% Function kShortestPath(netCostMatrix, source, destination, k_paths) 
+% Function kShortestPath(netCostMatrix, source, destination, k_paths)
 % returns the K first shortest paths (k_paths) from node source to node destination
 % in the a network of N nodes represented by the NxN matrix netCostMatrix.
-% In netCostMatrix, cost of 'inf' represents the 'absence' of a link 
-% It returns 
-% [shortestPaths]: the list of K shortest paths (in cell array 1 x K) and 
+% In netCostMatrix, cost of 'inf' represents the 'absence' of a link
+% It returns
+% [shortestPaths]: the list of K shortest paths (in cell array 1 x K) and
 % [totalCosts]   : costs of the K shortest paths (in array 1 x K)
 %==============================================================
 % Meral Shirazipour
 % This function is based on Yen's k-Shortest Path algorithm (1971)
-% This function calls a slightly modified function dijkstra() 
+% This function calls a slightly modified function dijkstra()
 % by Xiaodong Wang 2004.
 % * netCostMatrix must have positive weights/costs
 %==============================================================
-%  DATE :           December 9 decembre 2009                                 
+%  DATE :           December 9 decembre 2009
 %  Last Updated:    August 2 2010; January 6 2011; August 2 2011
 %  ----Changes April 2 2010:----
 %  1-previous version(9/12/2009)did not handle some exceptions which should
@@ -36,11 +36,11 @@ else
         shortestPaths=[];
         totalCosts=[];
     else
-        path_number = 1; 
-        P{path_number,1} = path; P{path_number,2} = cost; 
+        path_number = 1;
+        P{path_number,1} = path; P{path_number,2} = cost;
         current_P = path_number;
         %X is a cell array of a subset of P (used by Yen's algorithm below):
-        size_X=1;  
+        size_X=1;
         X{size_X} = {path_number; path; cost};
         %S path_number x 1
         S(path_number) = path(1); %deviation vertex is the first node initially
@@ -88,12 +88,12 @@ else
                             index = index+1;
                             SP_sameSubPath{index}=shortestPaths{i};
                         end
-                    end            
-                end       
+                    end
+                end
                 v_ = P_(index_dev_vertex);
                 for j = 1: length(SP_sameSubPath)
                     next = SP_sameSubPath{j}(index_dev_vertex+1);
-                    temp_netCostMatrix(v_,next)=inf;   
+                    temp_netCostMatrix(v_,next)=inf;
                 end
                 %------
                 %get the cost of the sub path before deviation vertex v
@@ -102,18 +102,18 @@ else
                 for i = 1: length(sub_P)-1
                     cost_sub_P = cost_sub_P + netCostMatrix(sub_P(i),sub_P(i+1));
                 end
-                %call dijkstra between deviation vertex to destination node    
+                %call dijkstra between deviation vertex to destination node
                 [dev_p c] = dijkstra(temp_netCostMatrix, P_(index_dev_vertex), destination);
                 if ~isempty(dev_p)
                     path_number = path_number + 1;
                     P{path_number,1} = [sub_P(1:end-1) dev_p] ;  %concatenate sub path- to -vertex -to- destination
                     P{path_number,2} =  cost_sub_P + c ;
                     S(path_number) = P_(index_dev_vertex);
-                    size_X = size_X + 1; 
+                    size_X = size_X + 1;
                     X{size_X} = {path_number;  P{path_number,1} ;P{path_number,2} };
                 else
                     %warning('k=%d, isempty(p)==true!\n',k);
-                end      
+                end
             end
             %---------------------------------------
             %Step necessary otherwise if k is bigger than number of possible paths
@@ -171,20 +171,20 @@ distance(s) = 0;
 for i = 1:(n-1),
     temp = [];
     for h = 1:n,
-         if ~visited(h)  % in the tree;
-             temp=[temp distance(h)];
-         else
-             temp=[temp inf];
-         end
-     end;
-     [t, u] = min(temp);      % it starts from node with the shortest distance to the source;
-     visited(u) = true;         % mark it as visited;
-     for v = 1:n,                % for each neighbors of node u;
-         if ( ( netCostMatrix(u, v) + distance(u)) < distance(v) )
-             distance(v) = distance(u) + netCostMatrix(u, v);   % update the shortest distance when a shorter shortestPath is found;
-             parent(v) = u;     % update its parent;
-         end;             
-     end;
+        if ~visited(h)  % in the tree;
+            temp=[temp distance(h)];
+        else
+            temp=[temp inf];
+        end
+    end;
+    [t, u] = min(temp);      % it starts from node with the shortest distance to the source;
+    visited(u) = true;         % mark it as visited;
+    for v = 1:n,                % for each neighbors of node u;
+        if ( ( netCostMatrix(u, v) + distance(u)) < distance(v) )
+            distance(v) = distance(u) + netCostMatrix(u, v);   % update the shortest distance when a shorter shortestPath is found;
+            parent(v) = u;     % update its parent;
+        end;
+    end;
 end;
 shortestPath = [];
 if parent(d) ~= 0   % if there is a shortestPath!
@@ -193,14 +193,14 @@ if parent(d) ~= 0   % if there is a shortestPath!
     while t ~= s
         p = parent(t);
         shortestPath = [p shortestPath];
-        
+
         if netCostMatrix(t, farthestPrevHop(t)) < netCostMatrix(t, p)
             farthestPrevHop(t) = p;
         end;
         if netCostMatrix(p, farthestNextHop(p)) < netCostMatrix(p, t)
             farthestNextHop(p) = t;
         end;
-        t = p;      
+        t = p;
     end;
 end;
 totalCost = distance(d);

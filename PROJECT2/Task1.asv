@@ -30,13 +30,8 @@ G = graph(Adj);
 linkLoad = zeros(nNodes);
 
 % Tráfego Unicast (Caminho mais curto)
-% s = origem; d= destino, up = tráfego de s para d, down = tráfego de d para s
-% Isto serve para calcular os menores caminhos
-
-% Importante salientar que os links são bidirecionais, logo para evitar
-% duplicados guardamos linkload(menor_no, maior_no) -> 3-7 é o mesmo que
-% 7-3
 for f = 1:size(Tu,1)
+
     s = Tu(f,1);
     d = Tu(f,2);
     up = Tu(f,3);
@@ -62,10 +57,6 @@ for f = 1:size(Tu,1)
 end
 
 % Tráfego Anycast (Caminho mais curto)
-% s = origem; up = Tráfego de origem ao nó servidor, down = Tráfego do nó
-% servidor até à origem.
-% Os nós servidores são o 5 e o 12 como dito no enunciado.
-
 for f = 1:size(Ta,1)
 
     s = Ta(f,1);
@@ -247,7 +238,7 @@ while toc(tStart) < timeLimit
     % Hill Climbing optimization
     [sol, cost] = hillClimbing(sol0, paths, Tu, L, nNodes);
 
-    % Update ao melhor global
+    % Update global be
     if cost < bestGlobalCost
         bestGlobalCost = cost;
         bestGlobalSolution = sol;
@@ -255,7 +246,7 @@ while toc(tStart) < timeLimit
     end
 end
 
-% Resultados
+% Display results
 fprintf('--- Task 1.c Results ---\n');
 fprintf('Worst link load: %.2f Gbps\n', bestGlobalCost);
 fprintf('Best solution found at %.2f seconds\n', bestTime);
@@ -267,8 +258,7 @@ fprintf('Best solution found at %.2f seconds\n', bestTime);
 % =========================
 
 clear;
-
-% Carregar dados
+% clc removed to preserve previous task outputs
 load('InputDataProject2.mat');
 
 nNodes = size(L,1);
@@ -277,10 +267,14 @@ linkCapacity = 50; % Gbps
 k = 6;
 timeLimit = 30; % seconds
 
+% -------------------------
 % Build graph from L
+% -------------------------
 G = graph(L, 'upper');
 
-% Computar o k-shortest paths
+% -------------------------
+% Compute k-shortest paths
+% -------------------------
 paths = cell(nFlows,1);
 
 for f = 1:nFlows
@@ -289,7 +283,9 @@ for f = 1:nFlows
     paths{f} = kShortestPath(L, s, d, k);
 end
 
+% -------------------------
 % Multi Start Hill Climbing
+% -------------------------
 bestGlobalCost = inf;
 bestGlobalSol = [];
 bestTime = 0;
@@ -298,13 +294,13 @@ tStart = tic;
 
 while toc(tStart) < timeLimit
 
-    % Solução com Greedy randomized initial
+    % --- Greedy randomized initial solution
     sol0 = greedyRandomInitialSolution(paths);
 
-    % Melhoria com o Hill climbing
+    % --- Hill climbing improvement
     [sol, cost] = hillClimbing(sol0, paths, Tu, L, nNodes);
 
-    % Verificar o melhor global
+    % --- Check if global best
     if cost < bestGlobalCost
         bestGlobalCost = cost;
         bestGlobalSol = sol;
@@ -312,15 +308,18 @@ while toc(tStart) < timeLimit
     end
 end
 
-
-% Avaliar solução Final
+% -------------------------
+% Evaluate final solution
+% -------------------------
 [linkLoads] = computeLinkLoads(bestGlobalSol, paths, Tu, nNodes);
 
 worstLinkLoad = max(linkLoads(:)) / linkCapacity;
 
 [energy, sleepingLinks] = computeNetworkEnergy(linkLoads, L);
 
-% Resultados
+% -------------------------
+% Display results
+% -------------------------
 fprintf('\n===== Task 1.d Results =====\n');
 fprintf('Worst link load        : %.4f\n', worstLinkLoad);
 fprintf('Network energy (W)     : %.2f\n', energy);
