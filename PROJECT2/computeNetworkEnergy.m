@@ -6,7 +6,8 @@ sleepingLinks = [];
 
 %% -------- Routers --------
 for n = 1:nNodes
-    traffic = sum(linkLoads(n,:));
+    % Sum traffic in both directions for router load
+    traffic = sum(linkLoads(n,:)) + sum(linkLoads(:,n));
     t = traffic / 500; % router capacity
     En = 10 + 90 * t^2;
     totalEnergy = totalEnergy + En;
@@ -16,7 +17,8 @@ end
 for i = 1:nNodes
     for j = i+1:nNodes
         if L(i,j) < inf
-            if linkLoads(i,j) > 0
+            % Link is active if there's traffic in either direction
+            if linkLoads(i,j) > 0 || linkLoads(j,i) > 0
                 % active link (50 Gbps)
                 El = 6 + 0.2 * L(i,j);
             else

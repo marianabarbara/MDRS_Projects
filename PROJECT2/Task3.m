@@ -189,7 +189,6 @@ task3b.bestTime = bestTime;
 
 %% =========================================================
 % Comparison: Task 2.b vs Task 2.c vs Task 3.b
-% =========================================================
 
 fprintf('\n========== Comparison: Task 2.b vs Task 2.c vs Task 3.b ==========\n');
 

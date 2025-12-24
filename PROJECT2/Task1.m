@@ -26,38 +26,33 @@ Adj(1:nNodes+1:end) = 0;
 
 G = graph(Adj);
 
-% Inicializar a matriz de carga dos links (Gbps)
+% Inicializar matrizes de carga direcionais dos links (Gbps)
+% linkLoad(i,j) = tráfego de i para j
 linkLoad = zeros(nNodes);
 
 % Tráfego Unicast (Caminho mais curto)
 % s = origem; d= destino, up = tráfego de s para d, down = tráfego de d para s
-% Isto serve para calcular os menores caminhos
+% Links bidirecionais: cada direção tem capacidade independente de 50 Gbps
 
-% Importante salientar que os links são bidirecionais, logo para evitar
-% duplicados guardamos linkload(menor_no, maior_no) -> 3-7 é o mesmo que
-% 7-3
 for f = 1:size(Tu,1)
     s = Tu(f,1);
     d = Tu(f,2);
     up = Tu(f,3);
     down = Tu(f,4);
 
-    % s -> d
-    pathSD = shortestpath(G, s, d);
-    for k = 1:length(pathSD)-1
-        i = pathSD(k);
-        j = pathSD(k+1);
-        % Adicionar ambas as direções para os links sem direção
-        linkLoad(min(i,j), max(i,j)) = linkLoad(min(i,j), max(i,j)) + up;
+    % Caminho de s para d (tráfego up)
+    path = shortestpath(G, s, d);
+    for k = 1:length(path)-1
+        i = path(k);
+        j = path(k+1);
+        linkLoad(i,j) = linkLoad(i,j) + up;
     end
 
-    % d -> s
-    pathDS = shortestpath(G, d, s);
-    for k = 1:length(pathDS)-1
-        i = pathDS(k);
-        j = pathDS(k+1);
-        % Adicionar ambas as direções para os links sem direção
-        linkLoad(min(i,j), max(i,j)) = linkLoad(min(i,j), max(i,j)) + down;
+    % Caminho de d para s (tráfego down) - mesmo caminho, direção oposta
+    for k = 1:length(path)-1
+        i = path(k);
+        j = path(k+1);
+        linkLoad(j,i) = linkLoad(j,i) + down;
     end
 end
 
@@ -84,32 +79,31 @@ for f = 1:size(Ta,1)
         pathUp = path12;
     end
 
-    % s -> anycast (upstream)
+    % Caminho de s para anycast (tráfego up)
     for k = 1:length(pathUp)-1
         i = pathUp(k);
         j = pathUp(k+1);
-        % Adicionar ambas as direções para os links sem direção
-        linkLoad(min(i,j), max(i,j)) = linkLoad(min(i,j), max(i,j)) + up;
+        linkLoad(i,j) = linkLoad(i,j) + up;
     end
 
-    % anycast -> s (downstream)
-    pathDown = shortestpath(G, acNode, s);
-    for k = 1:length(pathDown)-1
-        i = pathDown(k);
-        j = pathDown(k+1);
-        % Adicionar ambas as direções para os links sem direção
-        linkLoad(min(i,j), max(i,j)) = linkLoad(min(i,j), max(i,j)) + down;
+    % Caminho de anycast para s (tráfego down) - mesmo caminho, direção oposta
+    for k = 1:length(pathUp)-1
+        i = pathUp(k);
+        j = pathUp(k+1);
+        linkLoad(j,i) = linkLoad(j,i) + down;
     end
 end
 
-% Computar as cargas dos links e a pior carga
+% Computar as cargas dos links e a pior carga (considerando ambas as direções)
 linkLoadVec = [];
 linkIndex = [];
 
 for i = 1:nNodes
     for j = i+1:nNodes
         if L(i,j) > 0
-            linkLoadVec(end+1) = linkLoad(i,j);
+            % Para links bidirecionais, consideramos o máximo entre as duas direções
+            maxLoad = max(linkLoad(i,j), linkLoad(j,i));
+            linkLoadVec(end+1) = maxLoad;
             linkIndex(end+1,:) = [i j];
         end
     end
@@ -144,9 +138,9 @@ nNodes = size(linkLoad,1); % Número de Nós na rede
 % Consumo de Energia do Router
 routerLoad = zeros(nNodes,1);
 
-% Somar todo o tráfego que passa por cada Router
+% Somar todo o tráfego que passa por cada Router (ambas as direções)
 for i = 1:nNodes
-    routerLoad(i) = sum(linkLoad(i,:));
+    routerLoad(i) = sum(linkLoad(i,:)) + sum(linkLoad(:,i));
 end
 
 % Computar a Energia do Router
@@ -165,8 +159,8 @@ sleepingLinks = [];
 for i = 1:nNodes
     for j = i+1:nNodes
         if L(i,j) > 0   % Link Existente
-
-            if linkLoad(i,j) > 0
+            % Link ativo se houver tráfego em qualquer direção
+            if linkLoad(i,j) > 0 || linkLoad(j,i) > 0
                 % Link ativo (50 Gbps)
                 El = 6 + 0.2 * L(i,j);
             else
@@ -202,63 +196,22 @@ end
 
 
 
-%% Task 1.c - Multi Start Hill Climbing
-% Minimizar a carga do pior Link
-% Usar o Yen's k-shortest path algorithm que foi fornecido nas aulas.
+%% Task 1.c - Multi Start Hill Climbing Algorithm Development
+% Objetivo: Minimizar a carga do pior Link
+% Usar o Yen's k-shortest path algorithm para gerar caminhos candidatos
 
-clear;
+% Esta task desenvolve o algoritmo Multi Start Hill Climbing
+% O algoritmo está implementado nas seguintes funções:
+%   - kShortestPath.m: Algoritmo de Yen para k caminhos mais curtos
+%   - greedyRandomInitialSolution.m: Gera solução inicial aleatória
+%   - hillClimbing.m: Otimização local por Hill Climbing
+%   - evaluateWorstLinkLoad.m: Avalia a carga do pior link
 
-% Carregar dados
-load('InputDataProject2.mat');
-
-k = 6;              % Número de caminhos candidatos.
-timeLimit = 30;     % tempo limite pedido no enunciado em segundos.
-nNodes = size(L,1);
-nFlows = size(Tu,1);
-
-% Construir a matriz de custo (Comprimento dos links)
-netCostMatrix = inf(nNodes);
-netCostMatrix(L > 0) = L(L > 0);
-netCostMatrix(1:nNodes+1:end) = 0;
-
-% Computar o  k-shortest paths para cada flow unicast
-paths = cell(nFlows,1);
-
-for f = 1:nFlows
-    s = Tu(f,1);
-    d = Tu(f,2);
-
-    [sp, ~] = kShortestPath(netCostMatrix, s, d, k);
-    paths{f} = sp;
-end
-
-% Multi Start Hill Climbing
-bestGlobalCost = inf;
-bestGlobalSolution = [];
-bestTime = 0;
-
-tStart = tic;
-
-while toc(tStart) < timeLimit
-
-    % Inicial greedy randomized solution
-    sol0 = greedyRandomInitialSolution(paths);
-
-    % Hill Climbing optimization
-    [sol, cost] = hillClimbing(sol0, paths, Tu, L, nNodes);
-
-    % Update ao melhor global
-    if cost < bestGlobalCost
-        bestGlobalCost = cost;
-        bestGlobalSolution = sol;
-        bestTime = toc(tStart);
-    end
-end
-
-% Resultados
-fprintf('--- Task 1.c Results ---\n');
-fprintf('Worst link load: %.2f Gbps\n', bestGlobalCost);
-fprintf('Best solution found at %.2f seconds\n', bestTime);
+% A execução do algoritmo é realizada na Task 1.d
+fprintf('--- Task 1.c ---\n');
+fprintf('Algorithm developed and implemented in auxiliary functions.\n');
+fprintf('See hillClimbing.m, evaluateWorstLinkLoad.m, and kShortestPath.m\n');
+fprintf('Algorithm will be executed in Task 1.d\n');
 
 
 
@@ -316,13 +269,23 @@ end
 % Avaliar solução Final
 [linkLoads] = computeLinkLoads(bestGlobalSol, paths, Tu, nNodes);
 
-worstLinkLoad = max(linkLoads(:)) / linkCapacity;
+% Computar worst link load considerando ambas as direções
+worstLinkLoad = 0;
+for i = 1:nNodes
+    for j = i+1:nNodes
+        if L(i,j) > 0
+            maxLoad = max(linkLoads(i,j), linkLoads(j,i));
+            worstLinkLoad = max(worstLinkLoad, maxLoad);
+        end
+    end
+end
 
 [energy, sleepingLinks] = computeNetworkEnergy(linkLoads, L);
 
 % Resultados
 fprintf('\n===== Task 1.d Results =====\n');
-fprintf('Worst link load        : %.4f\n', worstLinkLoad);
+fprintf('Worst link load        : %.2f Gbps\n', worstLinkLoad);
+fprintf('Worst link utilization : %.2f %%\n', worstLinkLoad / linkCapacity * 100);
 fprintf('Network energy (W)     : %.2f\n', energy);
 fprintf('Number of sleeping links: %d\n', size(sleepingLinks,1));
 fprintf('Best solution found at : %.2f seconds\n', bestTime);
