@@ -56,43 +56,10 @@ for f = 1:size(Tu,1)
     end
 end
 
-% Tráfego Anycast (Caminho mais curto)
-% s = origem; up = Tráfego de origem ao nó servidor, down = Tráfego do nó
-% servidor até à origem.
-% Os nós servidores são o 5 e o 12 como dito no enunciado.
-
-for f = 1:size(Ta,1)
-
-    s = Ta(f,1);
-    up = Ta(f,2);
-    down = Ta(f,3);
-
-    % Caminho mais curto para cada nó Anycast
-    [path5, d5]   = shortestpath(G, s, anycastNodes(1));
-    [path12, d12] = shortestpath(G, s, anycastNodes(2));
-
-    if d5 <= d12
-        acNode = anycastNodes(1);
-        pathUp = path5;
-    else
-        acNode = anycastNodes(2);
-        pathUp = path12;
-    end
-
-    % Caminho de s para anycast (tráfego up)
-    for k = 1:length(pathUp)-1
-        i = pathUp(k);
-        j = pathUp(k+1);
-        linkLoad(i,j) = linkLoad(i,j) + up;
-    end
-
-    % Caminho de anycast para s (tráfego down) - mesmo caminho, direção oposta
-    for k = 1:length(pathUp)-1
-        i = pathUp(k);
-        j = pathUp(k+1);
-        linkLoad(j,i) = linkLoad(j,i) + down;
-    end
-end
+% NOTE: Anycast traffic is NOT included in Task 1.a
+% Task 1 objective: "Optimize the routing of the unicast service"
+% → Anycast always follows shortest path (not optimized)
+% → Only unicast loads are computed here
 
 % Computar as cargas dos links e a pior carga (considerando ambas as direções)
 linkLoadVec = [];
@@ -138,9 +105,10 @@ nNodes = size(linkLoad,1); % Número de Nós na rede
 % Consumo de Energia do Router
 routerLoad = zeros(nNodes,1);
 
-% Somar todo o tráfego que passa por cada Router (ambas as direções)
+% Somar todo o tráfego que passa por cada Router
+% Use only outgoing traffic to avoid double-counting
 for i = 1:nNodes
-    routerLoad(i) = sum(linkLoad(i,:)) + sum(linkLoad(:,i));
+    routerLoad(i) = sum(linkLoad(i,:));
 end
 
 % Computar a Energia do Router
@@ -155,12 +123,13 @@ totalRouterEnergy = sum(routerEnergy);
 % Consumo de Energia dos Links
 linkEnergy = 0;
 sleepingLinks = [];
+TOLERANCE = 1e-9; % Threshold for considering a link as having no traffic
 
 for i = 1:nNodes
     for j = i+1:nNodes
         if L(i,j) > 0   % Link Existente
             % Link ativo se houver tráfego em qualquer direção
-            if linkLoad(i,j) > 0 || linkLoad(j,i) > 0
+            if linkLoad(i,j) > TOLERANCE || linkLoad(j,i) > TOLERANCE
                 % Link ativo (50 Gbps)
                 El = 6 + 0.2 * L(i,j);
             else
@@ -242,6 +211,41 @@ for f = 1:nFlows
     paths{f} = kShortestPath(L, s, d, k);
 end
 
+% Pre-compute anycast loads (fixed shortest paths)
+% These must be considered during optimization to respect capacity
+anycastLoad = zeros(nNodes);
+G_anycast = graph(L, 'upper');
+
+for f = 1:size(Ta,1)
+    s = Ta(f,1);
+    up = Ta(f,2);
+    down = Ta(f,3);
+
+    % Find shortest path to nearest anycast node
+    [path5, d5] = shortestpath(G_anycast, s, 5);
+    [path12, d12] = shortestpath(G_anycast, s, 12);
+
+    if d5 <= d12
+        pathUp = path5;
+    else
+        pathUp = path12;
+    end
+
+    % Add anycast upstream traffic
+    for k_idx = 1:length(pathUp)-1
+        i = pathUp(k_idx);
+        j = pathUp(k_idx+1);
+        anycastLoad(i,j) = anycastLoad(i,j) + up;
+    end
+
+    % Add anycast downstream traffic
+    for k_idx = 1:length(pathUp)-1
+        i = pathUp(k_idx);
+        j = pathUp(k_idx+1);
+        anycastLoad(j,i) = anycastLoad(j,i) + down;
+    end
+end
+
 % Multi Start Hill Climbing
 bestGlobalCost = inf;
 bestGlobalSol = [];
@@ -254,8 +258,8 @@ while toc(tStart) < timeLimit
     % Solução com Greedy randomized initial
     sol0 = greedyRandomInitialSolution(paths);
 
-    % Melhoria com o Hill climbing
-    [sol, cost] = hillClimbing(sol0, paths, Tu, L, nNodes);
+    % Melhoria com o Hill climbing (considering anycast loads)
+    [sol, cost] = hillClimbingWithAnycast(sol0, paths, Tu, L, nNodes, anycastLoad);
 
     % Verificar o melhor global
     if cost < bestGlobalCost
@@ -268,6 +272,9 @@ end
 
 % Avaliar solução Final
 [linkLoads] = computeLinkLoads(bestGlobalSol, paths, Tu, nNodes);
+
+% Add pre-computed anycast loads
+linkLoads = linkLoads + anycastLoad;
 
 % Computar worst link load considerando ambas as direções
 worstLinkLoad = 0;
@@ -282,10 +289,55 @@ end
 
 [energy, sleepingLinks] = computeNetworkEnergy(linkLoads, L);
 
+% Debug: Check if linkLoads matrix has correct zero values
+numZeroLinks = 0;
+for i = 1:nNodes
+    for j = i+1:nNodes
+        if L(i,j) > 0
+            if linkLoads(i,j) == 0 && linkLoads(j,i) == 0
+                numZeroLinks = numZeroLinks + 1;
+            end
+        end
+    end
+end
+
+fprintf('\nDEBUG: Links with exactly zero load in both directions: %d\n', numZeroLinks);
+fprintf('DEBUG: Sleeping links reported by computeNetworkEnergy: %d\n', size(sleepingLinks,1));
+
+% Count links by traffic type
+unicastOnlyLinks = 0;
+anycastOnlyLinks = 0;
+bothTrafficLinks = 0;
+totalPhysicalLinks = 0;
+
+unicastLoads = linkLoads - anycastLoad;
+
+for i = 1:nNodes
+    for j = i+1:nNodes
+        if L(i,j) > 0
+            totalPhysicalLinks = totalPhysicalLinks + 1;
+            hasUnicast = (unicastLoads(i,j) > 0 || unicastLoads(j,i) > 0);
+            hasAnycast = (anycastLoad(i,j) > 0 || anycastLoad(j,i) > 0);
+
+            if hasUnicast && hasAnycast
+                bothTrafficLinks = bothTrafficLinks + 1;
+            elseif hasUnicast
+                unicastOnlyLinks = unicastOnlyLinks + 1;
+            elseif hasAnycast
+                anycastOnlyLinks = anycastOnlyLinks + 1;
+            end
+        end
+    end
+end
+
 % Resultados
 fprintf('\n===== Task 1.d Results =====\n');
 fprintf('Worst link load        : %.2f Gbps\n', worstLinkLoad);
 fprintf('Worst link utilization : %.2f %%\n', worstLinkLoad / linkCapacity * 100);
 fprintf('Network energy (W)     : %.2f\n', energy);
-fprintf('Number of sleeping links: %d\n', size(sleepingLinks,1));
+fprintf('Total physical links   : %d\n', totalPhysicalLinks);
+fprintf('Sleeping links         : %d\n', size(sleepingLinks,1));
+fprintf('Unicast-only links     : %d\n', unicastOnlyLinks);
+fprintf('Anycast-only links     : %d\n', anycastOnlyLinks);
+fprintf('Both traffic links     : %d\n', bothTrafficLinks);
 fprintf('Best solution found at : %.2f seconds\n', bestTime);

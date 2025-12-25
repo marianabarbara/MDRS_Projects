@@ -1,11 +1,11 @@
-function [bestSol, bestCost] = hillClimbing(sol, paths, Tu, L, nNodes)
-% Hill Climbing optimization for worst link load minimization
-% Enforces capacity constraint of 50 Gbps
+function [bestSol, bestCost] = hillClimbingWithAnycast(sol, paths, Tu, L, nNodes, anycastLoad)
+% Hill Climbing optimization considering fixed anycast traffic
+% Enforces capacity constraint of 50 Gbps including anycast loads
 
 CAPACITY = 50; % Gbps per link direction
 
 bestSol = sol;
-bestCost = evaluateWorstLinkLoad(sol, paths, Tu, L, nNodes);
+bestCost = evaluateWorstLinkLoadWithAnycast(sol, paths, Tu, L, nNodes, anycastLoad);
 
 improved = true;
 
@@ -20,7 +20,7 @@ while improved
                 newSol = bestSol;
                 newSol(f) = p;
 
-                cost = evaluateWorstLinkLoad(newSol, paths, Tu, L, nNodes);
+                cost = evaluateWorstLinkLoadWithAnycast(newSol, paths, Tu, L, nNodes, anycastLoad);
 
                 % Only accept if improves cost AND respects capacity
                 if cost < bestCost && cost <= CAPACITY
