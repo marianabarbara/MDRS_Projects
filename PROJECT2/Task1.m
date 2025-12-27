@@ -56,10 +56,38 @@ for f = 1:size(Tu,1)
     end
 end
 
-% NOTE: Anycast traffic is NOT included in Task 1.a
-% Task 1 objective: "Optimize the routing of the unicast service"
-% → Anycast always follows shortest path (not optimized)
-% → Only unicast loads are computed here
+% Tráfego Anycast (Caminho mais curto para o nó anycast mais próximo)
+% s = origem, up = tráfego de s para anycast, down = tráfego de anycast para s
+for f = 1:size(Ta,1)
+    s = Ta(f,1);
+    up = Ta(f,2);
+    down = Ta(f,3);
+
+    % Encontrar o nó anycast mais próximo (5 ou 12)
+    [path5, dist5] = shortestpath(G, s, 5);
+    [path12, dist12] = shortestpath(G, s, 12);
+
+    % Escolher o caminho mais curto
+    if dist5 <= dist12
+        pathUp = path5;
+    else
+        pathUp = path12;
+    end
+
+    % Caminho de s para anycast (tráfego up)
+    for k = 1:length(pathUp)-1
+        i = pathUp(k);
+        j = pathUp(k+1);
+        linkLoad(i,j) = linkLoad(i,j) + up;
+    end
+
+    % Caminho de anycast para s (tráfego down) - mesmo caminho, direção oposta
+    for k = 1:length(pathUp)-1
+        i = pathUp(k);
+        j = pathUp(k+1);
+        linkLoad(j,i) = linkLoad(j,i) + down;
+    end
+end
 
 % Computar as cargas dos links e a pior carga (considerando ambas as direções)
 linkLoadVec = [];
@@ -95,7 +123,7 @@ end
 
 
 %% Task 1.b - Consumo de Energia da Rede
-% É preciso a carga dos Links do exercicio 1.a
+% Usar as cargas dos Links do exercicio 1.a (incluindo unicast e anycast)
 
 % Parâmetros
 routerCapacity = 500;  % De acordo com o enunciado (Consider that each router has a capacity of 500 Gbps)
@@ -146,18 +174,40 @@ end
 % Energia total da Rede
 totalEnergy = totalRouterEnergy + linkEnergy;
 
+% Count active links for verification
+numActiveLinks = 0;
+numPhysicalLinks = 0;
+for i = 1:nNodes
+    for j = i+1:nNodes
+        if L(i,j) > 0
+            numPhysicalLinks = numPhysicalLinks + 1;
+            if linkLoad(i,j) > TOLERANCE || linkLoad(j,i) > TOLERANCE
+                numActiveLinks = numActiveLinks + 1;
+            end
+        end
+    end
+end
+
 % Resultados
 fprintf('\n--- Task 1.b Results ---\n');
 fprintf('Total router energy: %.2f\n', totalRouterEnergy);
 fprintf('Total link energy: %.2f\n', linkEnergy);
 fprintf('Total network energy: %.2f\n', totalEnergy);
+fprintf('Total physical links: %d\n', numPhysicalLinks);
+fprintf('Active links: %d\n', numActiveLinks);
+fprintf('Sleeping links: %d\n', size(sleepingLinks,1));
 
-fprintf('\nSleeping links:\n');
+fprintf('\nFirst 10 sleeping links:\n');
 if isempty(sleepingLinks)
     fprintf('None\n');
 else
-    for k = 1:size(sleepingLinks,1)
-        fprintf('Link %d-%d\n', sleepingLinks(k,1), sleepingLinks(k,2));
+    numToShow = min(10, size(sleepingLinks,1));
+    for k = 1:numToShow
+        fprintf('Link %d-%d (loads: %.4f / %.4f)\n', sleepingLinks(k,1), sleepingLinks(k,2), ...
+            linkLoad(sleepingLinks(k,1), sleepingLinks(k,2)), linkLoad(sleepingLinks(k,2), sleepingLinks(k,1)));
+    end
+    if size(sleepingLinks,1) > 10
+        fprintf('... and %d more\n', size(sleepingLinks,1) - 10);
     end
 end
 
