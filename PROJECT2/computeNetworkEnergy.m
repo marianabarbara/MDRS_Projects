@@ -18,7 +18,7 @@ TOLERANCE = 1e-9; % Threshold for considering a link as having no traffic
 
 for i = 1:nNodes
     for j = i+1:nNodes
-        if L(i,j) > 0  % Link exists (match condition used in Task1.m)
+        if isfinite(L(i,j))  % Link exists (L < Inf for actual physical links)
             % Link is active if there's traffic in either direction (above tolerance)
             if linkLoads(i,j) > TOLERANCE || linkLoads(j,i) > TOLERANCE
                 % active link (50 Gbps)

@@ -20,11 +20,8 @@ C = 50;                 % Capacidade dos Links (Na task 1 e 2 é pedido que seja
 anycastNodes = [5 12];  % Nós que permitem tráfego Anycast são segundo o enunciado o 5 e o 12.
 
 % Construir o grafo (Usando os comprimentos dos Links)
-Adj = inf(nNodes);
-Adj(L > 0) = L(L > 0);
-Adj(1:nNodes+1:end) = 0;
-
-G = graph(Adj);
+% L matrix uses Inf for non-existent links, finite values for actual links
+G = graph(L, 'upper');
 
 % Inicializar matrizes de carga direcionais dos links (Gbps)
 % linkLoad(i,j) = tráfego de i para j
@@ -95,7 +92,7 @@ linkIndex = [];
 
 for i = 1:nNodes
     for j = i+1:nNodes
-        if L(i,j) > 0
+        if isfinite(L(i,j))  % Only actual physical links (L < Inf)
             % Para links bidirecionais, consideramos o máximo entre as duas direções
             maxLoad = max(linkLoad(i,j), linkLoad(j,i));
             linkLoadVec(end+1) = maxLoad;
@@ -155,7 +152,7 @@ TOLERANCE = 1e-9; % Threshold for considering a link as having no traffic
 
 for i = 1:nNodes
     for j = i+1:nNodes
-        if L(i,j) > 0   % Link Existente
+        if isfinite(L(i,j))   % Link Existente (finite distance)
             % Link ativo se houver tráfego em qualquer direção
             if linkLoad(i,j) > TOLERANCE || linkLoad(j,i) > TOLERANCE
                 % Link ativo (50 Gbps)
@@ -179,7 +176,7 @@ numActiveLinks = 0;
 numPhysicalLinks = 0;
 for i = 1:nNodes
     for j = i+1:nNodes
-        if L(i,j) > 0
+        if isfinite(L(i,j))
             numPhysicalLinks = numPhysicalLinks + 1;
             if linkLoad(i,j) > TOLERANCE || linkLoad(j,i) > TOLERANCE
                 numActiveLinks = numActiveLinks + 1;
@@ -228,11 +225,9 @@ end
 
 % A execução do algoritmo é realizada na Task 1.d
 fprintf('--- Task 1.c ---\n');
-fprintf('Algorithm developed and implemented in auxiliary functions.\n');
-fprintf('See hillClimbing.m, evaluateWorstLinkLoad.m, and kShortestPath.m\n');
-fprintf('Algorithm will be executed in Task 1.d\n');
-
-
+fprintf('Algoritmos desenvolvidos e implementados nas funções auxiliares.\n');
+fprintf('Analisar hillClimbing.m, evaluateWorstLinkLoad.m, and kShortestPath.m\n');
+fprintf('Algoritmo será executado na Task 1.d\n');
 
 %% =========================
 % Task 1.d – Multi Start HC
@@ -330,7 +325,7 @@ linkLoads = linkLoads + anycastLoad;
 worstLinkLoad = 0;
 for i = 1:nNodes
     for j = i+1:nNodes
-        if L(i,j) > 0
+        if isfinite(L(i,j))  % Only actual physical links
             maxLoad = max(linkLoads(i,j), linkLoads(j,i));
             worstLinkLoad = max(worstLinkLoad, maxLoad);
         end
@@ -343,7 +338,7 @@ end
 numZeroLinks = 0;
 for i = 1:nNodes
     for j = i+1:nNodes
-        if L(i,j) > 0
+        if isfinite(L(i,j))  % Only actual physical links
             if linkLoads(i,j) == 0 && linkLoads(j,i) == 0
                 numZeroLinks = numZeroLinks + 1;
             end
@@ -364,7 +359,7 @@ unicastLoads = linkLoads - anycastLoad;
 
 for i = 1:nNodes
     for j = i+1:nNodes
-        if L(i,j) > 0
+        if isfinite(L(i,j))  % Only actual physical links
             totalPhysicalLinks = totalPhysicalLinks + 1;
             hasUnicast = (unicastLoads(i,j) > 0 || unicastLoads(j,i) > 0);
             hasAnycast = (anycastLoad(i,j) > 0 || anycastLoad(j,i) > 0);
