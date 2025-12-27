@@ -1,7 +1,12 @@
-function [bestSol, bestEnergy] = hillClimbingEnergyTask2(sol, paths, Tu, L, nNodes)
+function [bestSol, bestEnergy] = hillClimbingEnergyTask2(sol, paths, Tu, L, nNodes, anycastLoad)
 % Hill Climbing for Task 2 (energy minimization)
+% anycastLoad is optional - if not provided, defaults to zero
 
-[bestEnergy, feasible] = evaluateEnergyTask2(sol, paths, Tu, L, nNodes);
+if nargin < 6
+    anycastLoad = zeros(nNodes);
+end
+
+[bestEnergy, feasible] = evaluateEnergyTask2(sol, paths, Tu, L, nNodes, anycastLoad);
 
 if ~feasible
     bestEnergy = inf;
@@ -21,7 +26,7 @@ while improved
                 newSol = bestSol;
                 newSol(f) = p;
 
-                [energy, feasible] = evaluateEnergyTask2(newSol, paths, Tu, L, nNodes);
+                [energy, feasible] = evaluateEnergyTask2(newSol, paths, Tu, L, nNodes, anycastLoad);
 
                 if feasible && energy < bestEnergy
                     bestSol = newSol;

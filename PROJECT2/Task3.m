@@ -8,7 +8,6 @@ load('InputDataProject2.mat');
 % ---------------- Parameters ----------------
 k = 6;                 % Number of candidate paths per flow
 
-L(L==0) = inf;
 nNodes = size(L,1);
 nFlows = size(Tu,1);
 

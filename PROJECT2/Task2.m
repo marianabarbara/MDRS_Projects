@@ -11,7 +11,6 @@ linkCapacity = 50;   % Gbps
 k = 6;
 timeLimit = 30;        % Tempo limite em segundos
 
-L(L==0) = inf;
 nNodes = size(L,1);
 nFlows = size(Tu,1);
 
@@ -46,6 +45,41 @@ fprintf('\n========== Task 2.b: Running Algorithm ==========\n');
 timeLimit = 30;
 fprintf('Running for %d seconds with k = %d...\n\n', timeLimit, k);
 
+% Pre-compute anycast loads (fixed shortest paths)
+% Anycast traffic is not optimized, always uses shortest path
+anycastLoad = zeros(nNodes);
+G_anycast = graph(L, 'upper');
+
+for f = 1:size(Ta,1)
+    s = Ta(f,1);
+    up = Ta(f,2);
+    down = Ta(f,3);
+
+    % Find shortest path to nearest anycast node (5 or 12)
+    [path5, d5] = shortestpath(G_anycast, s, 5);
+    [path12, d12] = shortestpath(G_anycast, s, 12);
+
+    if d5 <= d12
+        pathUp = path5;
+    else
+        pathUp = path12;
+    end
+
+    % Add anycast upstream traffic
+    for k_idx = 1:length(pathUp)-1
+        i = pathUp(k_idx);
+        j = pathUp(k_idx+1);
+        anycastLoad(i,j) = anycastLoad(i,j) + up;
+    end
+
+    % Add anycast downstream traffic
+    for k_idx = 1:length(pathUp)-1
+        i = pathUp(k_idx);
+        j = pathUp(k_idx+1);
+        anycastLoad(j,i) = anycastLoad(j,i) + down;
+    end
+end
+
 bestEnergy = inf;
 bestSol = [];
 bestTime = 0;
@@ -59,7 +93,7 @@ while toc(tStart) < timeLimit
 
     % Hill Climbing (Task 2 - focado no objetivo da energia)
     [sol, energy] = hillClimbingEnergyTask2( ...
-        sol0, paths, Tu, L, nNodes);
+        sol0, paths, Tu, L, nNodes, anycastLoad);
 
     % Dar update ao melhor global
     if energy < bestEnergy
@@ -71,6 +105,10 @@ end
 
 % Avaliação final
 linkLoads = computeLinkLoads(bestSol, paths, Tu, nNodes);
+
+% Add anycast loads
+linkLoads = linkLoads + anycastLoad;
+
 worstLinkLoad = max(linkLoads(:)) / linkCapacity;
 
 [totalEnergy, sleepingLinks] = computeNetworkEnergy(linkLoads, L);
@@ -130,7 +168,7 @@ fprintf('\nRunning algorithm for %d seconds...\n', timeLimit);
 
 % Começa com o caminho mais curto (greedy) solução como melhor inicial.
 bestSol = ones(nFlows, 1);  % Selecionar primeiro o (mais curto) caminho para cada flow
-[bestEnergy, feasible] = evaluateEnergyTask2(bestSol, pathsAll, Tu, L, nNodes);
+[bestEnergy, feasible] = evaluateEnergyTask2(bestSol, pathsAll, Tu, L, nNodes, anycastLoad);
 if ~feasible
     bestEnergy = inf;
     bestSol = [];
@@ -156,7 +194,7 @@ while toc(tStart) < timeLimit
 
     % Hill Climbing (Task 2 - Objetivo da energia)
     [sol, energy] = hillClimbingEnergyTask2( ...
-        sol0, pathsAll, Tu, L, nNodes);
+        sol0, pathsAll, Tu, L, nNodes, anycastLoad);
 
     % Atualizar o melhor global
     if ~isinf(energy) && energy > 0
@@ -179,7 +217,7 @@ if isempty(bestSol)
     % Tentar encontrar uma solução válida
     for attempt = 1:100
         sol0 = greedyRandomInitialSolution(pathsAll);
-        [sol, energy] = hillClimbingEnergyTask2(sol0, pathsAll, Tu, L, nNodes);
+        [sol, energy] = hillClimbingEnergyTask2(sol0, pathsAll, Tu, L, nNodes, anycastLoad);
         if ~isinf(energy) && energy > 0
             bestSol = sol;
             bestEnergy = energy;
@@ -190,6 +228,10 @@ end
 
 % Avaliação final
 linkLoads = computeLinkLoads(bestSol, pathsAll, Tu, nNodes);
+
+% Add anycast loads
+linkLoads = linkLoads + anycastLoad;
+
 worstLinkLoad = max(linkLoads(:)) / linkCapacity;
 
 [totalEnergy, sleepingLinks] = computeNetworkEnergy(linkLoads, L);
