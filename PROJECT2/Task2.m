@@ -29,7 +29,7 @@ for f = 1:nFlows
 end
 
 % Desenvolver o Multi Start Hill Climbing
-fprintf('\nStep 2: Multi Start Hill Climbing algorithm developed with:\n');
+fprintf('\n  Multi Start Hill Climbing algorithm developed with:\n');
 fprintf('  - Greedy randomized initial solutions\n');
 fprintf('  - Hill climbing optimization\n');
 fprintf('  - Energy minimization objective\n');
@@ -115,7 +115,7 @@ worstLinkLoad = max(linkLoads(:)) / linkCapacity;
 
 % Resultados
 fprintf('========== Task 2.b Results ==========\n');
-fprintf('Worst link load      : %.4f (%.2f%%)\n', worstLinkLoad, worstLinkLoad*100);
+fprintf('Worst link load      : %.4f (%.2f%%) = %.2f Gbps\n', worstLinkLoad, worstLinkLoad*100, worstLinkLoad*linkCapacity);
 fprintf('Network energy (W)   : %.2f\n', totalEnergy);
 fprintf('Sleeping links       : %d\n', size(sleepingLinks,1));
 fprintf('Best solution time(s): %.2f\n', bestTime);
@@ -238,7 +238,7 @@ worstLinkLoad = max(linkLoads(:)) / linkCapacity;
 
 % Resultados
 fprintf('========== Task 2.c Results ==========\n');
-fprintf('Worst link load      : %.4f (%.2f%%)\n', worstLinkLoad, worstLinkLoad*100);
+fprintf('Worst link load      : %.4f (%.2f%%) = %.2f Gbps\n', worstLinkLoad, worstLinkLoad*100, worstLinkLoad*linkCapacity);
 fprintf('Network energy (W)   : %.2f\n', totalEnergy);
 fprintf('Sleeping links       : %d\n', size(sleepingLinks,1));
 fprintf('Best solution time(s): %.2f\n', bestTime);
