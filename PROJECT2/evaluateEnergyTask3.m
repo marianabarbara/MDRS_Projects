@@ -1,4 +1,4 @@
-function [totalEnergy, feasible, linkLoads, linkCapacities] = evaluateEnergyTask3(solution, paths, Tu, Ta, L, initialLinkCapacities)
+function [totalEnergy, feasible, linkLoads, linkCapacities] = evaluateEnergyTask3(solution, paths, Tu, Ta, L, initialLinkCapacities, anycastNodes)
 % Evaluate energy consumption for Task 3 with dynamic link capacity upgrades
 %
 % Key differences from Task 2:
@@ -11,7 +11,8 @@ nNodes = size(L,1);
 linkCapacities = initialLinkCapacities;
 
 % -------- Compute link loads --------
-linkLoads = computeLinkLoads(solution, paths, Tu, nNodes);
+linkLoads = computeLinkLoads(solution, paths, Tu, nNodes) + computeLinkLoadsAnycast(Ta, anycastNodes, L, nNodes);
+
 
 % -------- Dynamic capacity upgrade decision --------
 % If a link has load > 50 Gbps, upgrade it to 100 Gbps
@@ -59,13 +60,13 @@ end
 for i = 1:nNodes
     for j = i+1:nNodes
         if L(i,j) < inf
-            if linkLoads(i,j) > 0
+            if linkLoads(i,j) > 0 || linkLoads(j,i) > 0
                 % Active link
                 if linkCapacities(i,j) == 100
                     % Upgraded link: higher energy consumption
                     % Energy = 6 + 0.2*distance for 50 Gbps
                     % For 100 Gbps, double the variable component
-                    El = 6 + 0.4 * L(i,j);
+                    El = 8 + 0.3 * L(i,j);
                 else
                     % Standard 50 Gbps link
                     El = 6 + 0.2 * L(i,j);
